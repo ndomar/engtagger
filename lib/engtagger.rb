@@ -61,6 +61,12 @@ class EngTagger
   ADJ   = get_ext('jj[rs]*')
   PART  = get_ext('vbn')
   NN    = get_ext('nn[sp]*')
+  VB    = get_ext('vb')
+  VBP   = get_ext('vbp')
+  VBD   = get_ext('vbd')
+  VBN   = get_ext('vbn')
+  VBG   = get_ext('vbg')
+  VBZ   = get_ext('vbz')
   NNP   = get_ext('nnp')
   PREP  = get_ext('in')
   DET   = get_ext('det')
@@ -68,6 +74,8 @@ class EngTagger
   QUOT  = get_ext('ppr')
   SEN   = get_ext('pp')
   WORD  = get_ext('\w+')
+  puts NN
+  puts VB
 
   # Convert a Treebank-style, abbreviated tag into verbose definitions 
   def self.explain_tag(tag)
@@ -305,8 +313,7 @@ class EngTagger
     return nnp
   end
   
-  # Given a POS-tagged text, this method returns all nouns and their 
-  # occurrence frequencies.  
+  # Given a POS-tagged text, this method returns the nouns count 
   def get_nouns(tagged)
     return nil unless valid_text(tagged)
     NN
@@ -314,12 +321,39 @@ class EngTagger
       strip_tags(n)
     end
     ret = Hash.new(0)
+    nouns = 0
     trimmed.each do |n|
+      nouns = nouns + 1
       n = stem(n)
       next unless n.length < 100  # sanity check on word length
       ret[n] += 1 unless n =~ /\A\s*\z/
     end
-    return ret
+    return nouns
+  end
+
+
+  # Given a POS-tagged text, this method returns the verbs count
+
+  def get_verbs(tagged)
+    verbs = get_verbs_in_tense(tagged, VB) + get_verbs_in_tense(tagged, VBZ) + get_verbs_in_tense(tagged, VBN) + get_verbs_in_tense(tagged, VBP) + get_verbs_in_tense(tagged, VBG) + get_verbs_in_tense(tagged, VBD)
+  end
+
+
+  def get_verbs_in_tense(tagged, tense)
+    return nil unless valid_text(tagged)
+    tense
+    trimmed = tagged.scan(tense).map do |n|
+      strip_tags(n)
+    end
+    ret = Hash.new(0)
+    verbs = 0
+    trimmed.each do |n|
+      verbs = verbs + 1
+      n = stem(n)
+      next unless n.length < 100  # sanity check on word length
+      ret[n] += 1 unless n =~ /\A\s*\z/
+    end
+    verbs
   end
   
   # Given a POS-tagged text, this method returns only the maximal noun phrases.
